@@ -39,19 +39,20 @@
 
 #include "c201.h"
 
-#include <stdio.h> // printf
+#include <stdio.h>  // printf
 #include <stdlib.h> // malloc, free
 
 bool error_flag;
 bool solved;
 
 /**
- * Vytiskne upozornění na to, že došlo k chybě. Nastaví error_flag na logickou 1.
- * Tato funkce bude volána z některých dále implementovaných operací.
+ * Vytiskne upozornění na to, že došlo k chybě. Nastaví error_flag na
+ * logickou 1. Tato funkce bude volána z některých dále implementovaných
+ * operací.
  */
 void List_Error(void) {
-	printf("*ERROR* The program has performed an illegal operation.\n");
-	error_flag = true;
+  printf("*ERROR* The program has performed an illegal operation.\n");
+  error_flag = true;
 }
 
 /**
@@ -63,19 +64,36 @@ void List_Error(void) {
  *
  * @param list Ukazatel na strukturu jednosměrně vázaného seznamu
  */
-void List_Init( List *list ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
+void List_Init(List *list) {
+  list->activeElement = NULL;
+  list->firstElement = NULL;
+  list->currentLength = 0;
 }
 
 /**
- * Zruší všechny prvky seznamu list a uvede seznam list do stavu, v jakém se nacházel
- * po inicializaci. Veškerá paměť používaná prvky seznamu list bude korektně
- * uvolněna voláním operace free.
+ * Zruší všechny prvky seznamu list a uvede seznam list do stavu, v jakém se
+ *nacházel po inicializaci. Veškerá paměť používaná prvky seznamu list bude
+ *korektně uvolněna voláním operace free.
  *
- * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného seznamu
+ * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného
+ *seznamu
  **/
-void List_Dispose( List *list ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
+void List_Dispose(List *list) {
+  ListElementPtr temp;
+  ListElementPtr temp_next;
+  temp = malloc(sizeof(ListElementPtr));
+  temp_next = malloc(sizeof(ListElementPtr));
+  if (temp == NULL || temp_next == NULL) {
+    List_Error();
+  }
+  temp = list->firstElement;
+  free(list->firstElement);
+  for (size_t i = 0; i < list->currentLength - 1; i++) {
+    temp_next = temp;
+    free(temp);
+    temp = temp_next->nextElement;
+    free(temp_next);
+  }
 }
 
 /**
@@ -83,32 +101,46 @@ void List_Dispose( List *list ) {
  * V případě, že není dostatek paměti pro nový prvek při operaci malloc,
  * volá funkci List_Error().
  *
- * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného seznamu
+ * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného
+ * seznamu
  * @param data Hodnota k vložení na začátek seznamu
  */
-void List_InsertFirst( List *list, int data ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
+void List_InsertFirst(List *list, int data) {
+  ListElementPtr new;
+  ListElementPtr temp;
+  new = malloc(sizeof(ListElementPtr));
+  temp = malloc(sizeof(ListElementPtr));
+  if (new == NULL || temp == NULL) {
+    List_Error();
+  }
+  temp = list->firstElement;
+  new->data = data;
+  new->nextElement = temp;
+  list->firstElement = new;
 }
 
 /**
  * Nastaví aktivitu seznamu list na jeho první prvek.
  * Funkci implementujte jako jediný příkaz, aniž byste testovali,
  * zda je seznam list prázdný.
- * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného seznamu
+ * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného
+ * seznamu
  */
-void List_First( List *list ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
-}
+void List_First(List *list) { list->activeElement = list->firstElement; }
 
 /**
  * Prostřednictvím parametru dataPtr vrátí hodnotu prvního prvku seznamu list.
  * Pokud je seznam list prázdný, volá funkci List_Error().
  *
- * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného seznamu
+ * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného
+ * seznamu
  * @param dataPtr Ukazatel na cílovou proměnnou
  */
-void List_GetFirst( List *list, int *dataPtr ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
+void List_GetFirst(List *list, int *dataPtr) {
+  if (List_IsActive(list)) {
+    dataPtr = (int *)list->firstElement->data;
+  } else
+    List_Error();
 }
 
 /**
@@ -116,21 +148,41 @@ void List_GetFirst( List *list, int *dataPtr ) {
  * Pokud byl rušený prvek aktivní, aktivita seznamu se ztrácí.
  * Pokud byl seznam list prázdný, nic se neděje.
  *
- * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného seznamu
+ * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného
+ * seznamu
  */
-void List_DeleteFirst( List *list ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
+void List_DeleteFirst(List *list) {
+  if (List_IsActive(list)) {
+    if (list->firstElement == list->activeElement) {
+      list->firstElement->data = 0;
+      free(list->firstElement);
+      list->currentLength--;
+      return;
+    }
+    ListElementPtr temp;
+    temp = malloc(sizeof(ListElementPtr));
+    temp = list->firstElement;
+    free(list->firstElement);
+    list->firstElement = temp;
+    free(temp);
+    list->currentLength--;
+  }
 }
 
 /**
  * Zruší prvek seznamu list za aktivním prvkem a uvolní jím používanou paměť.
- * Pokud není seznam list aktivní nebo pokud je aktivní poslední prvek seznamu list,
- * nic se neděje.
+ * Pokud není seznam list aktivní nebo pokud je aktivní poslední prvek seznamu
+ * list, nic se neděje.
  *
- * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného seznamu
+ * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného
+ * seznamu
  */
-void List_DeleteAfter( List *list ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
+void List_DeleteAfter(List *list) {
+  if (List_IsActive(list) && list->activeElement->nextElement != NULL) {
+    list->activeElement->nextElement->data = 0;
+    free(list->activeElement->nextElement);
+    list->currentLength--;
+  }
 }
 
 /**
@@ -139,33 +191,53 @@ void List_DeleteAfter( List *list ) {
  * V případě, že není dostatek paměti pro nový prvek při operaci malloc,
  * zavolá funkci List_Error().
  *
- * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného seznamu
+ * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného
+ * seznamu
  * @param data Hodnota k vložení do seznamu za právě aktivní prvek
  */
-void List_InsertAfter( List *list, int data ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
+void List_InsertAfter(List *list, int data) {
+  if (List_IsActive(list)) {
+    ListElementPtr new_element;
+    new_element = malloc(sizeof(ListElementPtr));
+    if (new_element == NULL) {
+      List_Error();
+    }
+    new_element->nextElement = list->activeElement->nextElement;
+    list->activeElement->nextElement = new_element;
+    new_element->data = data;
+    list->currentLength++;
+  }
 }
 
 /**
  * Prostřednictvím parametru dataPtr vrátí hodnotu aktivního prvku seznamu list.
  * Pokud seznam není aktivní, zavolá funkci List_Error().
  *
- * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného seznamu
+ * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného
+ * seznamu
  * @param dataPtr Ukazatel na cílovou proměnnou
  */
-void List_GetValue( List *list, int *dataPtr ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
+void List_GetValue(List *list, int *dataPtr) {
+  if (List_IsActive(list)) {
+    dataPtr = (int *)list->activeElement->data;
+  } else
+    List_Error();
 }
 
 /**
  * Přepíše data aktivního prvku seznamu list hodnotou data.
  * Pokud seznam list není aktivní, nedělá nic!
  *
- * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného seznamu
+ * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného
+ * seznamu
  * @param data Nová hodnota právě aktivního prvku
  */
-void List_SetValue( List *list, int data ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
+void List_SetValue(List *list, int data) {
+  if (List_IsActive(list)) {
+    list->activeElement->data = data;
+    return 1;
+  }
+  return 0;
 }
 
 /**
@@ -173,21 +245,28 @@ void List_SetValue( List *list, int data ) {
  * Všimněte si, že touto operací se může aktivní seznam stát neaktivním.
  * Pokud není předaný seznam list aktivní, nedělá funkce nic.
  *
- * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného seznamu
+ * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného
+ * seznamu
  */
-void List_Next( List *list ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
+void List_Next(List *list) {
+  if (List_IsActive(list)) {
+    list->activeElement = list->activeElement->nextElement;
+  }
+  return 0;
 }
 
 /**
  * Je-li seznam list aktivní, vrací nenulovou hodnotu, jinak vrací 0.
  * Tuto funkci je vhodné implementovat jedním příkazem return.
  *
- * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného seznamu
+ * @param list Ukazatel na inicializovanou strukturu jednosměrně vázaného
+ * seznamu
  */
-int List_IsActive( List *list ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
-	return 0;
+int List_IsActive(List *list) {
+  if (list->activeElement != NULL) {
+    return 1;
+  }
+  return 0;
 }
 
 /* Konec c201.c */
