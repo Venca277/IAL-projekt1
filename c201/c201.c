@@ -80,20 +80,15 @@ void List_Init(List *list) {
  **/
 void List_Dispose(List *list) {
   ListElementPtr temp;
-  ListElementPtr temp_next;
-  temp = malloc(sizeof(ListElementPtr));
-  temp_next = malloc(sizeof(ListElementPtr));
-  if (temp == NULL || temp_next == NULL) {
-    List_Error();
-  }
-  temp = list->firstElement;
-  free(list->firstElement);
-  for (size_t i = 0; i < list->currentLength - 1; i++) {
-    temp_next = temp;
+
+  while (list->firstElement != NULL) {
+    temp = list->firstElement;
+    list->firstElement = temp->nextElement;
     free(temp);
-    temp = temp_next->nextElement;
-    free(temp_next);
   }
+  list->currentLength = 0;
+  list->activeElement = NULL;
+  List_Init(list);
 }
 
 /**
@@ -107,16 +102,15 @@ void List_Dispose(List *list) {
  */
 void List_InsertFirst(List *list, int data) {
   ListElementPtr new;
-  ListElementPtr temp;
-  new = malloc(sizeof(ListElementPtr));
-  temp = malloc(sizeof(ListElementPtr));
-  if (new == NULL || temp == NULL) {
+  new = (ListElementPtr)malloc(sizeof(struct ListElement));
+  if (new == NULL) {
     List_Error();
+    return;
   }
-  temp = list->firstElement;
   new->data = data;
-  new->nextElement = temp;
+  new->nextElement = list->firstElement;
   list->firstElement = new;
+  list->currentLength++;
 }
 
 /**
@@ -137,8 +131,8 @@ void List_First(List *list) { list->activeElement = list->firstElement; }
  * @param dataPtr Ukazatel na cílovou proměnnou
  */
 void List_GetFirst(List *list, int *dataPtr) {
-  if (List_IsActive(list)) {
-    dataPtr = (int *)list->firstElement->data;
+  if (list->firstElement != NULL) {
+    *dataPtr = list->firstElement->data;
   } else
     List_Error();
 }
@@ -152,18 +146,13 @@ void List_GetFirst(List *list, int *dataPtr) {
  * seznamu
  */
 void List_DeleteFirst(List *list) {
-  if (List_IsActive(list)) {
-    if (list->firstElement == list->activeElement) {
-      list->firstElement->data = 0;
-      free(list->firstElement);
-      list->currentLength--;
-      return;
-    }
+  if (list->firstElement != NULL) {
     ListElementPtr temp;
-    temp = malloc(sizeof(ListElementPtr));
+    if (list->firstElement == list->activeElement) {
+      list->activeElement = NULL;
+    }
     temp = list->firstElement;
-    free(list->firstElement);
-    list->firstElement = temp;
+    list->firstElement = temp->nextElement;
     free(temp);
     list->currentLength--;
   }
@@ -179,8 +168,10 @@ void List_DeleteFirst(List *list) {
  */
 void List_DeleteAfter(List *list) {
   if (List_IsActive(list) && list->activeElement->nextElement != NULL) {
-    list->activeElement->nextElement->data = 0;
-    free(list->activeElement->nextElement);
+    ListElementPtr temp;
+    temp = list->activeElement->nextElement;
+    list->activeElement->nextElement = temp->nextElement;
+    free(temp);
     list->currentLength--;
   }
 }
@@ -198,7 +189,7 @@ void List_DeleteAfter(List *list) {
 void List_InsertAfter(List *list, int data) {
   if (List_IsActive(list)) {
     ListElementPtr new_element;
-    new_element = malloc(sizeof(ListElementPtr));
+    new_element = (ListElementPtr)malloc(sizeof(struct ListElement));
     if (new_element == NULL) {
       List_Error();
     }
@@ -219,7 +210,7 @@ void List_InsertAfter(List *list, int data) {
  */
 void List_GetValue(List *list, int *dataPtr) {
   if (List_IsActive(list)) {
-    dataPtr = (int *)list->activeElement->data;
+    *dataPtr = list->activeElement->data;
   } else
     List_Error();
 }
@@ -235,9 +226,9 @@ void List_GetValue(List *list, int *dataPtr) {
 void List_SetValue(List *list, int data) {
   if (List_IsActive(list)) {
     list->activeElement->data = data;
-    return 1;
+    return;
   }
-  return 0;
+  return;
 }
 
 /**
@@ -252,7 +243,7 @@ void List_Next(List *list) {
   if (List_IsActive(list)) {
     list->activeElement = list->activeElement->nextElement;
   }
-  return 0;
+  return;
 }
 
 /**
