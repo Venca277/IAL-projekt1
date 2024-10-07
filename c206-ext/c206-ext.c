@@ -14,21 +14,28 @@ bool solved;
  * Přijaté pakety jsou zařazeny do odpovídajících front dle jejich priorit.
  * "Fronty" jsou v tomto cvičení reprezentovány dvousměrně vázanými seznamy
  * - ty totiž umožňují snazší úpravy pro již zařazené položky.
- * 
- * Parametr `packetLists` obsahuje jednotlivé seznamy paketů (`QosPacketListPtr`).
- * Pokud fronta s odpovídající prioritou neexistuje, tato metoda ji alokuje
- * a inicializuje. Za jejich korektní uvolnení odpovídá volající.
- * 
+ *
+ * Parametr `packetLists` obsahuje jednotlivé seznamy paketů
+ * (`QosPacketListPtr`). Pokud fronta s odpovídající prioritou neexistuje, tato
+ * metoda ji alokuje a inicializuje. Za jejich korektní uvolnení odpovídá
+ * volající.
+ *
  * V případě, že by po zařazení paketu do seznamu počet prvků v cílovém seznamu
- * překročil stanovený MAX_PACKET_COUNT, dojde nejdříve k promazání položek seznamu.
- * V takovémto případě bude každá druhá položka ze seznamu zahozena nehledě
- * na její vlastní prioritu ovšem v pořadí přijetí.
- * 
- * @param packetLists Ukazatel na inicializovanou strukturu dvousměrně vázaného seznamu
+ * překročil stanovený MAX_PACKET_COUNT, dojde nejdříve k promazání položek
+ * seznamu. V takovémto případě bude každá druhá položka ze seznamu zahozena
+ * nehledě na její vlastní prioritu ovšem v pořadí přijetí.
+ *
+ * @param packetLists Ukazatel na inicializovanou strukturu dvousměrně vázaného
+ * seznamu
  * @param packet Ukazatel na strukturu přijatého paketu
  */
-void receive_packet( DLList *packetLists, PacketPtr packet ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
+void receive_packet(DLList *packetLists, PacketPtr packet) {
+  int i;
+  for (size_t i = 0; i < MAX_PACKET_COUNT; i++) {
+    if () {
+      /* code */
+    }
+  }
 }
 
 /**
@@ -36,16 +43,19 @@ void receive_packet( DLList *packetLists, PacketPtr packet ) {
  * relativní priority paketů mezi sebou, kde pakety s nejvyšší prioritou
  * jsou vždy odeslány nejdříve. Odesílání dále respektuje pořadí, ve kterém
  * byly pakety přijaty metodou `receive_packet`.
- * 
+ *
  * Odeslané pakety jsou ze zdrojového seznamu při odeslání odstraněny.
- * 
- * Parametr `packetLists` obsahuje ukazatele na jednotlivé seznamy paketů (`QosPacketListPtr`).
- * Parametr `outputPacketList` obsahuje ukazatele na odeslané pakety (`PacketPtr`).
- * 
- * @param packetLists Ukazatel na inicializovanou strukturu dvousměrně vázaného seznamu
+ *
+ * Parametr `packetLists` obsahuje ukazatele na jednotlivé seznamy paketů
+ * (`QosPacketListPtr`). Parametr `outputPacketList` obsahuje ukazatele na
+ * odeslané pakety (`PacketPtr`).
+ *
+ * @param packetLists Ukazatel na inicializovanou strukturu dvousměrně vázaného
+ * seznamu
  * @param outputPacketList Ukazatel na seznam paketů k odeslání
  * @param maxPacketCount Maximální počet paketů k odeslání
  */
-void send_packets( DLList *packetLists, DLList *outputPacketList, int maxPacketCount ) {
-	solved = false; /* V případě řešení, smažte tento řádek! */
+void send_packets(DLList *packetLists, DLList *outputPacketList,
+                  int maxPacketCount) {
+  solved = false; /* V případě řešení, smažte tento řádek! */
 }
