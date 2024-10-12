@@ -70,6 +70,7 @@ void receive_packet(DLList *packetLists, PacketPtr packet) {
       printf("Allocation failed!");
       return;
     }
+    DLL_Init(new_list);
 
     new_packet_list->priority = packet->priority;
     new_packet_list->list = new_list;
