@@ -81,13 +81,14 @@ void List_Init(List *list) {
 void List_Dispose(List *list) {
   ListElementPtr temp;
 
+  // projde celý list a postupně uvolní všechny prvky
   while (list->firstElement != NULL) {
     temp = list->firstElement;
     list->firstElement = temp->nextElement;
     free(temp);
   }
-  list->currentLength = 0;
-  list->activeElement = NULL;
+  list->currentLength = 0;    // resetuje délku
+  list->activeElement = NULL; // resetuje aktivní element
   List_Init(list);
 }
 
@@ -101,16 +102,17 @@ void List_Dispose(List *list) {
  * @param data Hodnota k vložení na začátek seznamu
  */
 void List_InsertFirst(List *list, int data) {
-  ListElementPtr new;
-  new = (ListElementPtr)malloc(sizeof(struct ListElement));
+  // nový element
+  ListElementPtr new = (ListElementPtr)malloc(sizeof(struct ListElement));
   if (new == NULL) {
     List_Error();
     return;
   }
-  new->data = data;
-  new->nextElement = list->firstElement;
-  list->firstElement = new;
-  list->currentLength++;
+  // naplní nový element
+  new->data = data;                      // data z parametru
+  new->nextElement = list->firstElement; // napojení na původní první
+  list->firstElement = new;              // nastavení na prnvní
+  list->currentLength++;                 // inkrementace počtu prvků
 }
 
 /**
@@ -131,10 +133,11 @@ void List_First(List *list) { list->activeElement = list->firstElement; }
  * @param dataPtr Ukazatel na cílovou proměnnou
  */
 void List_GetFirst(List *list, int *dataPtr) {
+  // kontrola existence prvního prvku
   if (list->firstElement != NULL) {
-    *dataPtr = list->firstElement->data;
+    *dataPtr = list->firstElement->data; // vrátí data skrz pointer
   } else
-    List_Error();
+    List_Error(); // jinak vrátí error
 }
 
 /**
@@ -146,15 +149,16 @@ void List_GetFirst(List *list, int *dataPtr) {
  * seznamu
  */
 void List_DeleteFirst(List *list) {
+  // kontrola jestli list není prázdný
   if (list->firstElement != NULL) {
-    ListElementPtr temp;
-    if (list->firstElement == list->activeElement) {
+    ListElementPtr temp; // pomocná proměnná pro korektní uvolnění
+    if (list->firstElement == list->activeElement) { // ztráta aktivity
       list->activeElement = NULL;
     }
-    temp = list->firstElement;
-    list->firstElement = temp->nextElement;
-    free(temp);
-    list->currentLength--;
+    temp = list->firstElement;              // uložení prvky pro uvolnění
+    list->firstElement = temp->nextElement; // další prvek bude první
+    free(temp);                             // uvolnění prvku
+    list->currentLength--;                  // dekrementace počtu prvků
   }
 }
 
@@ -167,12 +171,14 @@ void List_DeleteFirst(List *list) {
  * seznamu
  */
 void List_DeleteAfter(List *list) {
+  // kontrola aktivity seznamu a existence dalšího prvku
   if (List_IsActive(list) && list->activeElement->nextElement != NULL) {
-    ListElementPtr temp;
+    ListElementPtr temp; // pomocná proměnná pro uvolnění
     temp = list->activeElement->nextElement;
-    list->activeElement->nextElement = temp->nextElement;
-    free(temp);
-    list->currentLength--;
+    list->activeElement->nextElement =
+        temp->nextElement; // napojení dalšího prvku
+    free(temp);            // uvolnění prvku
+    list->currentLength--; // dekrementace počtu prvků
   }
 }
 
@@ -187,16 +193,19 @@ void List_DeleteAfter(List *list) {
  * @param data Hodnota k vložení do seznamu za právě aktivní prvek
  */
 void List_InsertAfter(List *list, int data) {
+  // kontrola aktivity seznamu
   if (List_IsActive(list)) {
-    ListElementPtr new_element;
-    new_element = (ListElementPtr)malloc(sizeof(struct ListElement));
-    if (new_element == NULL) {
+    ListElementPtr new_element; // novy prvek listu
+    new_element = (ListElementPtr)malloc(
+        sizeof(struct ListElement)); // alokace pameti prvku
+    if (new_element == NULL) {       // kontrola alokace
       List_Error();
     }
-    new_element->nextElement = list->activeElement->nextElement;
-    list->activeElement->nextElement = new_element;
-    new_element->data = data;
-    list->currentLength++;
+    new_element->nextElement =
+        list->activeElement->nextElement; // připojení ukazatele na prvek
+    list->activeElement->nextElement = new_element; // následující prvek je new
+    new_element->data = data; // naplnění new elementu daty
+    list->currentLength++;    // inkrementace počtu prvků
   }
 }
 
@@ -209,10 +218,12 @@ void List_InsertAfter(List *list, int data) {
  * @param dataPtr Ukazatel na cílovou proměnnou
  */
 void List_GetValue(List *list, int *dataPtr) {
+
+  // kontrola aktivity listu
   if (List_IsActive(list)) {
-    *dataPtr = list->activeElement->data;
+    *dataPtr = list->activeElement->data; // vrátí hodnotu skrz pointer
   } else
-    List_Error();
+    List_Error(); // jinak list error
 }
 
 /**
@@ -224,8 +235,8 @@ void List_GetValue(List *list, int *dataPtr) {
  * @param data Nová hodnota právě aktivního prvku
  */
 void List_SetValue(List *list, int data) {
-  if (List_IsActive(list)) {
-    list->activeElement->data = data;
+  if (List_IsActive(list)) {          // kontrola aktivity listu
+    list->activeElement->data = data; // prepis dat aktivniho prvku
     return;
   }
   return;
@@ -240,8 +251,10 @@ void List_SetValue(List *list, int data) {
  * seznamu
  */
 void List_Next(List *list) {
-  if (List_IsActive(list)) {
-    list->activeElement = list->activeElement->nextElement;
+  if (List_IsActive(list)) { // kontrola aktivity listu
+    list->activeElement =
+        list->activeElement
+            ->nextElement; // posun na dalsi aktivni prvek, nebo ztrata aktivity
   }
   return;
 }
@@ -254,7 +267,7 @@ void List_Next(List *list) {
  * seznamu
  */
 int List_IsActive(List *list) {
-  if (list->activeElement != NULL) {
+  if (list->activeElement != NULL) { // kontrola existence aktivniho prvku
     return 1;
   }
   return 0;
