@@ -30,12 +30,19 @@ bool solved;
  * @param packet Ukazatel na strukturu přijatého paketu
  */
 void receive_packet(DLList *packetLists, PacketPtr packet) {
-  QosPacketListPtr curr_qos;
-  int located = 0;
 
-  DLL_First(packetLists);
+  QosPacketListPtr curr_qos; // aktuální list packetů
+  DLL_First(packetLists);    // posunutí ukazatele na první list packetů
+  int located = 0; // pomocná proměnná pro nalezení správné priority
+
+  //----------------------------------------------------------------
+  // Hledání správného listu podle priority
+  //----------------------------------------------------------------
+
   while (packetLists->activeElement != NULL) {
     curr_qos = (QosPacketListPtr)packetLists->activeElement->data;
+
+    // pokud se rovná byl nalezen list packetů
     if (curr_qos->priority == packet->priority) {
       located = 1;
       break;
@@ -43,41 +50,39 @@ void receive_packet(DLList *packetLists, PacketPtr packet) {
     DLL_Next(packetLists);
   }
 
-  if (located) {
+  //---------------------------------------------------------------
+  // Tvorba nového listu pro prioritu packetu (pokud neexistuje)
+  //---------------------------------------------------------------
 
-    if (curr_qos->list->currentLength < MAX_PACKET_COUNT) {
-      DLL_InsertLast(curr_qos->list, (long)packet);
-    } else {
-      DLL_First(curr_qos->list);
-      for (int i = 1; i <= curr_qos->list->currentLength; i++) {
-        if (i % 2) {
-          if (curr_qos->list->activeElement->nextElement != NULL) {
-            DLL_Next(curr_qos->list);
-          }
-        } else if (curr_qos->list->activeElement->nextElement != NULL) {
-          DLL_Next(curr_qos->list);
-          DLL_DeleteBefore(curr_qos->list);
-        }
-      }
-    }
-
-  } else {
-    DLList *new_list;
-    QosPacketList *new_packet_list;
-    new_list = malloc(sizeof(DLList));
-    new_packet_list = malloc(sizeof(QosPacketList));
+  if (!located) {
+    DLList *new_list = malloc(sizeof(DLList));
+    QosPacketList *new_packet_list = malloc(sizeof(QosPacketList));
+    // kontrola alokace
     if (new_list == NULL || new_packet_list == NULL) {
       printf("Allocation failed!");
       return;
     }
     DLL_Init(new_list);
-
+    // inicializace nového listu pro paket
     new_packet_list->priority = packet->priority;
     new_packet_list->list = new_list;
-    DLL_InsertLast(packetLists, (long)new_packet_list);
+    DLL_InsertLast(packetLists, (long)new_packet_list); // vložení k ostatním
+    curr_qos = (QosPacketListPtr)packetLists->lastElement->data; // nový list
+  }
 
-    curr_qos = (QosPacketListPtr)packetLists->lastElement->data;
-    DLL_InsertLast(curr_qos->list, (long)packet);
+  //--------------------------------------------------------------
+  // Vkládání packetů do jeho listu
+  //--------------------------------------------------------------
+
+  if (curr_qos->list->currentLength < MAX_PACKET_COUNT) {
+    DLL_InsertLast(curr_qos->list, (long)packet); // vkládá do MAX_PACKET_COUNT
+  } else { // jinak od začátku zahodí každý druhý packet
+    DLL_First(curr_qos->list);
+    while (curr_qos->list->activeElement != NULL) {
+      DLL_DeleteAfter(curr_qos->list);
+      DLL_Next(curr_qos->list);
+    }
+    DLL_InsertLast(curr_qos->list, (long)packet); // vloží packet co se nevešel
   }
 }
 
@@ -100,34 +105,42 @@ void receive_packet(DLList *packetLists, PacketPtr packet) {
  */
 void send_packets(DLList *packetLists, DLList *outputPacketList,
                   int maxPacketCount) {
-  int swapp = 1;
-  long swapp_place;
-  QosPacketListPtr active;
-  QosPacketListPtr active_next;
-  DLL_First(packetLists);
 
-  while (swapp) {
+  long swapp_place;       // pomocná proměnná pro prohození dvou priorit
+  DLL_First(packetLists); // aktvní prvek na první prvek (první list packetů)
+  QosPacketListPtr active;      // první list packetů
+  QosPacketListPtr active_next; // další list packetů (hned vedle)
+
+  //-----------------------------------------------------------------------------
+  // Řazení packet listů
+  //-----------------------------------------------------------------------------
+
+  int swapp = 1;
+  //řadící algoritmus(bubble sort), bude řadit pro listy s více než jednou
+  // prioritou
+  while (swapp && (packetLists->currentLength > 1)) {
     swapp = 0;
     int i = 1;
 
     while (i <= packetLists->currentLength) {
 
+      // zajištění cyklicity listu(aby bylo vždy s čím porovnávat)
       if (packetLists->activeElement->nextElement == NULL) {
         DLL_First(packetLists);
       }
+
+      // inicializace prvků pro porovnání
       active = (QosPacketListPtr)packetLists->activeElement->data;
       active_next =
           (QosPacketListPtr)packetLists->activeElement->nextElement->data;
-      if ((active == NULL) || (active_next == NULL)) {
-        break;
-      }
 
+      // prohození ukazatelů(longů) na list packetů, řazení je sestupné
       if (active->priority < active_next->priority) {
         swapp_place = packetLists->activeElement->nextElement->data;
         packetLists->activeElement->nextElement->data =
             packetLists->activeElement->data;
         packetLists->activeElement->data = swapp_place;
-        swapp = 1;
+        swapp = 1; // byl proveden prohoz
       }
 
       DLL_Next(packetLists);
@@ -135,37 +148,43 @@ void send_packets(DLList *packetLists, DLList *outputPacketList,
     }
   }
 
-  DLL_First(packetLists);
-  QosPacketListPtr curr_qos;
-  curr_qos = (QosPacketListPtr)packetLists->activeElement->data;
-  DLL_First(curr_qos->list);
-  int packets_out = 0;
+  //-----------------------------------------------------------------------------
+  // Odesílaní packetů
+  //-----------------------------------------------------------------------------
 
+  // příprava odesílání v seřazeném listu packetů, nejvyšší priorita
+  DLL_First(packetLists);
+  QosPacketListPtr curr_qos =
+      (QosPacketListPtr)packetLists->activeElement
+          ->data; // nahrání prvního listu packetů s nejvyšší prioritou
+  DLL_First(curr_qos->list); // první jde ven nejstarší packet
+  int packets_out = 0;       //čítač odeslaných packetů
+
+  // odesílá packety dokud nebyl odeslán požadovaný počet
   while (packets_out != maxPacketCount) {
+
+    // kontrola prázdnosti listu a přepnutí na další prioritu
     if (curr_qos->list->activeElement == NULL) {
       DLL_Next(packetLists);
+      // není-li dostupný další list packetů, odesílání se ukončí
       if (packetLists->activeElement == NULL) {
         break;
       }
+      // přepnutí na další list packetů
       curr_qos = (QosPacketListPtr)packetLists->activeElement->data;
+      DLL_First(curr_qos->list);
     }
 
+    // odesílání packetů do outputPacketList a inkrementace čítače packetů
+    DLL_InsertLast(outputPacketList, curr_qos->list->activeElement->data);
+    packets_out++;
+    // kontrola posledního packetu v listu
     if (curr_qos->list->currentLength == 1) {
-      DLL_InsertLast(outputPacketList, curr_qos->list->activeElement->data);
-      packets_out++;
       DLL_DeleteFirst(curr_qos->list);
       continue;
     }
-
-    DLL_InsertLast(outputPacketList, curr_qos->list->activeElement->data);
-    packets_out++;
+    // zahození packetu a posunutí ukazatele na další packet
     DLL_Next(curr_qos->list);
     DLL_DeleteBefore(curr_qos->list);
-    if ((curr_qos->list->activeElement == curr_qos->list->firstElement) &&
-        (curr_qos->list->currentLength == 1)) {
-      DLL_InsertLast(outputPacketList, curr_qos->list->activeElement->data);
-      packets_out++;
-      DLL_DeleteFirst(curr_qos->list);
-    }
   }
 }

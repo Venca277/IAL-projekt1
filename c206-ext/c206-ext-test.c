@@ -25,64 +25,66 @@ test_print_current_queue_count(test_queue_list);
 test_print_list_of_packets(test_output_list);
 ENDTEST
 
-/*
 TEST(test_receive_send_order, "Přijetí a odeslání packetu respektuje pořadí")
-        DLL_Init(test_queue_list);
-        DLL_Init(test_output_list);
+DLL_Init(test_queue_list);
+DLL_Init(test_output_list);
 
-        Packet packet1 = { .id = 1, .priority = 0 };
-        Packet packet2 = { .id = 2, .priority = 0 };
-        Packet packet3 = { .id = 3, .priority = 0 };
-        receive_packet(test_queue_list, &packet1);
-        receive_packet(test_queue_list, &packet2);
-        receive_packet(test_queue_list, &packet3);
-        send_packets(test_queue_list, test_output_list, 3);
+Packet packet1 = {.id = 1, .priority = 0};
+Packet packet2 = {.id = 2, .priority = 0};
+Packet packet3 = {.id = 3, .priority = 0};
+receive_packet(test_queue_list, &packet1);
+receive_packet(test_queue_list, &packet2);
+receive_packet(test_queue_list, &packet3);
+send_packets(test_queue_list, test_output_list, 3);
 
-        test_print_current_queue_count(test_queue_list);
-        test_print_list_of_packets(test_output_list);
+test_print_current_queue_count(test_queue_list);
+test_print_list_of_packets(test_output_list);
 ENDTEST
 
-TEST(test_receive_send_priority, "Přijetí a odeslání packetu respektuje
-prioritu") DLL_Init(test_queue_list); DLL_Init(test_output_list);
+TEST(test_receive_send_priority,
+     "Přijetí a odeslání packetu respektuje prioritu")
+DLL_Init(test_queue_list);
+DLL_Init(test_output_list);
 
-        Packet packet1 = { .id = 1, .priority = 0 };
-        Packet packet2 = { .id = 2, .priority = 10 };
-        Packet packet3 = { .id = 3, .priority = 5 };
-        receive_packet(test_queue_list, &packet1);
-        receive_packet(test_queue_list, &packet2);
-        receive_packet(test_queue_list, &packet3);
-        send_packets(test_queue_list, test_output_list, 3);
+Packet packet1 = {.id = 1, .priority = 0};
+Packet packet2 = {.id = 2, .priority = 10};
+Packet packet3 = {.id = 3, .priority = 5};
+receive_packet(test_queue_list, &packet1);
+receive_packet(test_queue_list, &packet2);
+receive_packet(test_queue_list, &packet3);
+send_packets(test_queue_list, test_output_list, 3);
 
-        test_print_current_queue_count(test_queue_list);
-        test_print_list_of_packets(test_output_list);
+test_print_current_queue_count(test_queue_list);
+test_print_list_of_packets(test_output_list);
 ENDTEST
 
-TEST(test_receive_send_drop, "Přijetí packetu zahodí každý druhý packet při
-přeplnění") DLL_Init(test_queue_list); DLL_Init(test_output_list);
-        MAX_PACKET_COUNT = 4;
+TEST(test_receive_send_drop,
+     "Přijetí packetu zahodí každý druhý packet při přeplnění")
+DLL_Init(test_queue_list);
+DLL_Init(test_output_list);
+MAX_PACKET_COUNT = 4;
 
-        Packet packet1 = { .id = 1, .priority = 0 };
-        Packet packet2 = { .id = 2, .priority = 0 };
-        Packet packet3 = { .id = 3, .priority = 0 };
-        Packet packet4 = { .id = 4, .priority = 0 };
-        Packet packet5 = { .id = 5, .priority = 0 };
-        receive_packet(test_queue_list, &packet1);
-        receive_packet(test_queue_list, &packet2);
-        receive_packet(test_queue_list, &packet3);
-        receive_packet(test_queue_list, &packet4);
-        receive_packet(test_queue_list, &packet5);
-        send_packets(test_queue_list, test_output_list, 3);
+Packet packet1 = {.id = 1, .priority = 0};
+Packet packet2 = {.id = 2, .priority = 0};
+Packet packet3 = {.id = 3, .priority = 0};
+Packet packet4 = {.id = 4, .priority = 0};
+Packet packet5 = {.id = 5, .priority = 0};
+receive_packet(test_queue_list, &packet1);
+receive_packet(test_queue_list, &packet2);
+receive_packet(test_queue_list, &packet3);
+receive_packet(test_queue_list, &packet4);
+receive_packet(test_queue_list, &packet5);
+send_packets(test_queue_list, test_output_list, 3);
 
-        test_print_current_queue_count(test_queue_list);
-        test_print_list_of_packets(test_output_list);
+test_print_current_queue_count(test_queue_list);
+test_print_list_of_packets(test_output_list);
 ENDTEST
-*/
 
 void (*tests[])(void) = {
     test_receive_send,
-    // test_receive_send_order,
-    // test_receive_send_priority,
-    // test_receive_send_drop,
+    test_receive_send_order,
+    test_receive_send_priority,
+    test_receive_send_drop,
 };
 
 int main(int argc, char *argv[]) {
