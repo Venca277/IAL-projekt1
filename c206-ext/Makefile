@@ -18,7 +18,7 @@ run: $(PROG)
 	@rm -f current-test.out
 
 $(PROJECT)-test: $(PROJECT).c $(PROJECT)-test.c $(PROJECT)-test-utils.c $(C206_DEPENDENCY)
-	$(CC) $(CFLAGS) -o $@ $(PROJECT).c $(PROJECT)-test.c $(PROJECT)-test-utils.c $(C206_DEPENDENCY) -g
+	$(CC) $(CFLAGS) -o $@ $(PROJECT).c $(PROJECT)-test.c $(PROJECT)-test-utils.c $(C206_DEPENDENCY)
 
 $(PROJECT)-test.out: $(PROJECT)-test
 	@if [ -f $(PROJECT)-test.out ]; then echo "The reference output already exists!"; exit 1; fi
