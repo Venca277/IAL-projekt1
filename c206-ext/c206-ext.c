@@ -178,7 +178,8 @@ void send_packets(DLList *packetLists, DLList *outputPacketList,
     // odesílání packetů do outputPacketList a inkrementace čítače packetů
     DLL_InsertLast(outputPacketList, curr_qos->list->activeElement->data);
     packets_out++;
-    // kontrola posledního packetu v listu
+    // DLLElementPtr deleted = curr_qos->list->activeElement;
+    //  kontrola posledního packetu v listu
     if (curr_qos->list->currentLength == 1) {
       DLL_DeleteFirst(curr_qos->list);
       continue;

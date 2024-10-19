@@ -87,12 +87,11 @@ void Queue_Error(int error_code) {
  */
 void Queue_Init(Queue *queue) {
   if (queue == NULL)
-    Queue_Error(QERR_INIT);
+    Queue_Error(QERR_INIT); // error pokud je ukazatel NULL
   for (size_t i = 0; i < MAX_QUEUE; i++)
-    queue->array[i] = '*';
-  queue->firstIndex = 0;
-  queue->freeIndex = 0;
-  solved = false; /* V případě řešení, smažte tento řádek! */
+    queue->array[i] = '*'; // vyplní celé pole '*'
+  queue->firstIndex = 0;   // nastaví první index na 0
+  queue->freeIndex = 0;    // volnou pozici na 0
 }
 
 /**
@@ -102,7 +101,9 @@ void Queue_Init(Queue *queue) {
  *
  * @param index Aktuální index
  */
-int nextIndex(int index) { return ((index + 1) % QUEUE_SIZE); }
+int nextIndex(int index) {
+  return ((index + 1) % QUEUE_SIZE); /*vrátí následující index prvku v poli*/
+}
 
 /**
  * Vrací nenulovou hodnotu, pokud je frona prázdná, jinak vrací hodnotu 0.
@@ -112,6 +113,7 @@ int nextIndex(int index) { return ((index + 1) % QUEUE_SIZE); }
  */
 int Queue_IsEmpty(const Queue *queue) {
   return queue->firstIndex == queue->freeIndex;
+  // pokud se rovnají indexy, fronta je prázdná
 }
 
 /**
@@ -123,6 +125,8 @@ int Queue_IsEmpty(const Queue *queue) {
  */
 int Queue_IsFull(const Queue *queue) {
   return (nextIndex(queue->freeIndex) == queue->firstIndex);
+  // pokud je další volný index první, fronta je plná (zůstane v poli vždy jeden
+  // volný)
 }
 
 /**
@@ -140,9 +144,9 @@ int Queue_IsFull(const Queue *queue) {
  */
 void Queue_Front(const Queue *queue, char *dataPtr) {
   if (!Queue_IsEmpty(queue)) {
-    *dataPtr = queue->array[queue->firstIndex];
+    *dataPtr = queue->array[queue->firstIndex]; // vrátí data ze začátku fronty
   } else
-    Queue_Error(QERR_FRONT);
+    Queue_Error(QERR_FRONT); // vrátí error pokud je fronta prázdná
 }
 
 /**
@@ -155,9 +159,10 @@ void Queue_Front(const Queue *queue, char *dataPtr) {
  */
 void Queue_Remove(Queue *queue) {
   if (!Queue_IsEmpty(queue)) {
-    queue->firstIndex = nextIndex(queue->firstIndex);
+    queue->firstIndex =
+        nextIndex(queue->firstIndex); // odstraní ze začátku fronty
   } else
-    Queue_Error(QERR_REMOVE);
+    Queue_Error(QERR_REMOVE); // pokud je fronta prázdná vrátí error
 }
 
 /**
@@ -173,10 +178,11 @@ void Queue_Remove(Queue *queue) {
  */
 void Queue_Dequeue(Queue *queue, char *dataPtr) {
   if (!Queue_IsEmpty(queue)) {
-    *dataPtr = queue->array[queue->firstIndex];
-    queue->firstIndex = nextIndex(queue->firstIndex);
+    *dataPtr = queue->array[queue->firstIndex]; // vrátí data skrz pointer
+    queue->firstIndex =
+        nextIndex(queue->firstIndex); // odstraní z počátku fronty
   } else
-    Queue_Error(QERR_DEQUEUE);
+    Queue_Error(QERR_DEQUEUE); // vrátí error pokud je fronta prázná
 }
 
 /**
@@ -193,10 +199,12 @@ void Queue_Dequeue(Queue *queue, char *dataPtr) {
  */
 void Queue_Enqueue(Queue *queue, char data) {
   if (!Queue_IsFull(queue)) {
-    queue->array[queue->freeIndex] = data;
-    queue->freeIndex = nextIndex(queue->freeIndex);
+    queue->array[queue->freeIndex] = data; // vloží data na volné místo ve
+                                           // frontě
+    queue->freeIndex = nextIndex(queue->freeIndex); // posune index volného
+                                                    // místa
   } else
-    Queue_Error(QERR_ENQUEUE);
+    Queue_Error(QERR_ENQUEUE); // vrátí error když je fronta plná
 }
 
 /* Konec příkladu c203.c */
