@@ -219,10 +219,13 @@ void DLL_GetFirst(DLList *list, long *dataPtr) {
  * @param dataPtr Ukazatel na cílovou proměnnou
  */
 void DLL_GetLast(DLList *list, long *dataPtr) {
-  if (!(list->firstElement == NULL)) {  // pokud není poslední prázdný
-    *dataPtr = list->lastElement->data; // vrátí hodnotu přes ukazatel
-  } else
-    DLL_Error(); // jinak vrátí error
+  if (list->currentLength <= 0) {
+    DLL_Error();
+    return;
+  }
+
+  // hodnotu dataPtr nastavím na hodnotu posledního elementu
+  *dataPtr = list->lastElement->data;
 }
 
 /**
@@ -323,20 +326,19 @@ void DLL_DeleteAfter(DLList *list) {
 void DLL_DeleteBefore(DLList *list) {
   if (!(list->activeElement == NULL ||
         list->activeElement->previousElement == NULL)) {
-    DLLElementPtr temp = list->activeElement->previousElement;
-    // pomocná proměnná
-    list->currentLength--; // dekrementace prvků v listu
-
-    if (temp->previousElement == NULL) { // pokud byl prvek před první
-      list->activeElement->previousElement = NULL; // nastaví ukazetel na null
-      list->firstElement = list->activeElement;    // aktivní je teď první
+    DLLElementPtr temp;
+    temp = list->activeElement->previousElement;
+    if (temp->previousElement == NULL) {
+      list->activeElement->previousElement = NULL;
+      list->firstElement = list->activeElement;
+      temp->nextElement = NULL;
+      list->currentLength--;
       free(temp);
       return;
     }
-    list->activeElement->previousElement =
-        temp->previousElement; // přepojení ukazatele na prvek před
-    temp->previousElement->nextElement =
-        list->activeElement; // přepojení uakzetele na aktivní prvek
+    list->activeElement->previousElement = temp->previousElement;
+    temp->previousElement->nextElement = list->activeElement;
+    list->currentLength--;
     free(temp);
   }
 }
@@ -493,7 +495,7 @@ void DLL_Previous(DLList *list) {
  * @returns Nenulovou hodnotu v případě aktivity prvku seznamu, jinak nulu
  */
 bool DLL_IsActive(DLList *list) {
-  return !(list->activeElement == NULL); // vrací jestli je list aktivní
+  return (list->activeElement != NULL); // vrací jestli je list aktivní
 }
 
 /* Konec c206.c */

@@ -430,11 +430,10 @@ void DLL_InsertBefore(DLList *list, long data) {
  */
 void DLL_GetValue(DLList *list, long *dataPtr) {
   // kontrola aktivity listu
-  if (list->activeElement == NULL || list->currentLength == 0) {
-    DLL_Error(); // jinak list error
-    return;
-  } else
+  if (!(list->activeElement == NULL)) {
     *dataPtr = list->activeElement->data; // vrátí data skrz pointer
+  } else
+    DLL_Error(); // jinak list error
 }
 
 /**
