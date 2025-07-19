@@ -96,6 +96,7 @@ void DLL_Init(DLList *list) {
 void DLL_Dispose(DLList *list) {
   DLLElementPtr curr;
   // projde postupně všechny prvky
+  list->activeElement = NULL;
   while (list->firstElement != NULL) {
     curr = list->firstElement;              // uloží element pro uvolnění
     list->firstElement = curr->nextElement; // posune prvek
